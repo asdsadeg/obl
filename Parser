@@ -1,0 +1,60 @@
+from Lexer import TokenType
+
+class Parser:
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self.current_token = self.lexer.get_next_token()
+
+    def consume(self, token_type):
+        if self.current_token.type == token_type:
+            self.current_token = self.lexer.get_next_token()
+        else:
+            raise SyntaxError(f"Expected {token_type}, got {self.current_token.type}")
+
+    def parse(self):
+        result = self.parse_comparison()
+        if self.current_token.type is not None:
+            raise SyntaxError("Unexpected token at end of input")
+        return result
+
+    # < имеет наивысший приоритет
+    def parse_comparison(self):
+        result = self.parse_add_sub()
+        while self.current_token.type == TokenType.LT:
+            self.consume(TokenType.LT)
+            right = self.parse_add_sub()
+            result = 1 if result < right else 0
+        return result
+
+    # + и - имеют средний приоритет, правая ассоциативность
+    def parse_add_sub(self):
+        result = self.parse_mul()
+        while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
+            if self.current_token.type == TokenType.PLUS:
+                self.consume(TokenType.PLUS)
+                result += self.parse_mul()
+            elif self.current_token.type == TokenType.MINUS:
+                self.consume(TokenType.MINUS)
+                result -= self.parse_mul()
+        return result
+
+    # * имеет самый низкий приоритет
+    def parse_mul(self):
+        result = self.parse_atom()
+        while self.current_token.type == TokenType.MUL:
+            self.consume(TokenType.MUL)
+            result *= self.parse_atom()
+        return result
+
+    def parse_atom(self):
+        if self.current_token.type == TokenType.NUMBER:
+            value = self.current_token.value
+            self.consume(TokenType.NUMBER)
+            return value
+        elif self.current_token.type == TokenType.LPAREN:
+            self.consume(TokenType.LPAREN)
+            result = self.parse_comparison()
+            self.consume(TokenType.RPAREN)
+            return result
+        else:
+            raise SyntaxError("Expected number or '('")
