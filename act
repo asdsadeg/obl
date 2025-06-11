@@ -1,0 +1,371 @@
+--europa/cesko/15
+SELECT b.meno AS meno, b.priezvisko AS priezvisko, k.nazov AS stat
+FROM bezec b
+JOIN krajina k ON b.id_krajina = k.id_krajina
+WHERE k.kontinent = 'Európa' AND k.nazov != 'Česko'
+ORDER BY meno ASC, priezvisko DESC, stat ASC;
+
+--marek kovac/3
+SELECT p.nazov AS pretek
+FROM bezec b
+JOIN bezec_pretek bp ON b.id_bezec = bp.id_bezec
+JOIN pretek p ON bp.id_pretek = p.id_pretek
+WHERE b.meno = 'Marek' AND b.priezvisko = 'Kováč'
+ORDER BY pretek ASC;
+
+--maji2025/33
+SELECT b.meno AS meno, b.priezvisko AS priezvisko, p.nazov AS pretek
+FROM bezec b
+JOIN bezec_pretek bp ON b.id_bezec = bp.id_bezec
+JOIN pretek p ON p.id_pretek = bp.id_pretek
+WHERE EXTRACT(YEAR FROM p.datum) = 2025 AND EXTRACT(MONTH FROM p.datum) = 5
+ORDER BY meno ASC, priezvisko ASC, pretek ASC;
+
+--india1985 140000/2
+SELECT k.kontinent AS kontinent, COUNT(*) AS pocet_bezcov
+FROM bezec b
+JOIN krajina k ON b.id_krajina = k.id_krajina
+JOIN bezec_pretek bp ON b.id_bezec = bp.id_bezec
+WHERE bp.cas_v_milisekundach < 140000 AND k.nazov != 'India' AND b.datum_narodenia >= '1985-07-21'
+GROUP BY k.kontinent
+HAVING COUNT(*) > 6
+ORDER BY pocet_bezcov DESC, kontinent ASC;
+
+--400000km/20
+SELECT b.meno || ' ' || b.priezvisko AS meno, bp.cas_v_milisekundach / 1000 AS cas, p.nazov AS pretek
+FROM bezec b
+JOIN bezec_pretek bp ON b.id_bezec = bp.id_bezec
+JOIN pretek p ON bp.id_pretek = p.id_pretek
+JOIN krajina k ON b.id_krajina = k.id_krajina
+WHERE bp.cas_v_milisekundach IS NOT NULL AND b.stredne_meno IS NULL AND k.rozloha_v_km2 <= 400000
+ORDER BY pretek ASC, cas ASC, meno ASC;
+
+--nie/z/europy/27
+SELECT b.meno AS meno, b.priezvisko AS priezvisko, k.nazov AS stat
+FROM bezec b
+JOIN krajina k ON b.id_krajina = k.id_krajina
+WHERE k.kontinent != 'Európa'
+ORDER BY stat ASC, priezvisko ASC, meno ASC;
+
+--taliansky polmaraton/14
+SELECT p.nazov AS nazov, p.dlzka_v_metroch AS dlzka, bp.cas_v_milisekundach AS cas
+FROM pretek p
+JOIN bezec_pretek bp ON p.id_pretek = bp.id_pretek
+WHERE bp.cas_v_milisekundach IS NOT NULL AND p.nazov = 'Taliansky polmaratón'
+ORDER BY nazov ASC, dlzka ASC, cas ASC;
+
+--na/lubovolnom preteku/14
+SELECT k.nazov AS stat, CEIL(AVG(bp.cas_v_milisekundach) / 1000) AS primer, COUNT(DISTINCT b.id_bezec) AS pocet
+FROM bezec b
+JOIN bezec_pretek bp on b.id_bezec = bp.id_bezec
+JOIN krajina k ON b.id_krajina = k.id_krajina
+WHERE bp.cas_v_milisekundach IS NOT NULL
+GROUP BY k.nazov
+ORDER BY primer ASC, pocet ASC;
+
+--40000/50000 metrov/3
+SELECT p.nazov AS pretek, EXTRACT(YEAR FROM p.datum) AS rok, p.dlzka_v_metroch AS dlzka
+FROM pretek p
+WHERE p.dlzka_v_metroch BETWEEN 40000 AND 50000
+ORDER BY pretek ASC, rok ASC, dlzka DESC;
+
+--maraton v berline/18
+SELECT b.meno || b.priezvisko AS meno, bp.cas_v_milisekundach / 1000
+AS cas
+FROM bezec b
+JOIN bezec_pretek bp ON b.id_bezec = bp.id_bezec
+JOIN pretek p ON bp.id_pretek = p.id_pretek
+WHERE p.nazov = 'Maratón v Berlíne'
+ORDER BY cas ASC, b.priezvisko ASC, b.meno ASC;
+
+--beh po alpach/13
+SELECT b.meno AS meno, b.priezvisko AS priezvisko, p.nazov AS pretek, bp.cas_v_milisekundach AS milisekundy
+FROM bezec b
+JOIN bezec_pretek bp ON b.id_bezec = bp.id_bezec
+JOIN pretek p ON bp.id_pretek = p.id_pretek
+WHERE p.nazov = 'Beh po Alpách'
+ORDER BY meno ASC, priezvisko ASC, pretek ASC, milisekundy DESC;
+
+--ind/usa/2
+SELECT b.meno AS meno, b. priezvisko AS priezvisko, k.nazov AS stat, k.rok_vzniku AS vznik
+FROM bezec b
+JOIN krajina k ON b.id_krajina = k.id_krajina
+WHERE k.kod IN ('IND', 'USA') AND b.stredne_meno IS NOT NULL
+ORDER BY meno ASC, priezvisko ASC, stat ASC, vznik ASC;
+
+--pretekarov/9
+SELECT p.nazov AS pretek, COUNT(bp.id_bezec) AS pocet
+FROM pretek p
+JOIN bezec_pretek bp on p.id_pretek = bp.id_pretek
+GROUP BY p.nazov
+ORDER BY pocet DESC, pretek DESC;
+
+--o/e/5znakov/3
+SELECT b.meno AS meno, b.priezvisko AS priezvisko, EXTRACT(YEAR FROM b.datum_narodenia) AS rok_narodenia
+FROM bezec b
+WHERE LENGTH(b.priezvisko) >= 5 AND SUBSTRING(b.priezvisko FROM 2 FOR 1) = 'o' AND SUBSTRING(b.priezvisko FROM (LENGTH(b.priezvisko) - 1) FOR 1) = 'e'
+ORDER BY meno ASC, priezvisko ASC, rok_narodenia DESC;
+
+--konci na a/5
+SELECT b.meno || ' ' || b.priezvisko AS ucastnik, k.Rozloha_v_km2 AS rozloha, CEIL(AVG(bp.cas_v_milisekundach)) AS cas
+FROM bezec b
+JOIN krajina k ON b.id_krajina = k.id_krajina
+JOIN bezec_pretek bp ON b.id_bezec = bp.id_bezec
+WHERE bp.cas_v_milisekundach IS NOT NULL AND b.priezvisko LIKE '%a'
+GROUP BY b.meno, b.priezvisko, k.Rozloha_v_km2
+ORDER BY cas DESC, rozloha ASC, ucastnik ASC;
+
+--maraton alebo Maraton/3
+SELECT p.nazov AS pretek, p.datum AS datum, COUNT(bp.id_bezec) AS bezcov, COUNT(DISTINCT k.id_krajina) AS krajin
+FROM pretek p
+JOIN bezec_pretek bp ON p.id_pretek = bp.id_pretek
+JOIN bezec b ON bp.id_bezec = b.id_bezec
+JOIN krajina k ON b.id_krajina = k.id_krajina
+WHERE LOWER(p.nazov) like '%maratón%'
+GROUP BY p.nazov, p.datum
+HAVING COUNT(*) < 15
+ORDER BY bezcov DESC, krajin DESC, pretek ASC, datum ASC;
+
+--1.1.1985/2
+SELECT b.priezvisko AS priezvisko, ROUND(AVG(bp.cas_v_milisekundach) / 1000, 2) AS priemer, COUNT(bp.id_pretek) AS pocet
+FROM bezec b
+JOIN bezec_pretek bp ON b.id_bezec = bp.id_bezec
+JOIN pretek p ON bp.id_pretek = p.id_pretek
+JOIN krajina k ON b.id_krajina = k.id_krajina
+WHERE b.datum_narodenia >= '1995-01-01' AND p.nazov != 'Polmaratón v Prahe' AND k.kontinent = 'Európa' AND bp.cas_v_milisekundach IS NOT NULL
+GROUP BY b.priezvisko
+ORDER BY priemer ASC, pocet ASC;
+
+--15
+SELECT k.nazov AS stat, COUNT(b.id_bezec) AS pocet
+FROM krajina k
+JOIN bezec b ON k.id_krajina = b.id_krajina
+GROUP BY k.nazov
+ORDER BY pocet ASC, stat ASC;
+
+--"R"/9
+SELECT
+    k.kod AS krajina,
+    b.stredne_meno AS bezec,
+    COUNT(*) AS dokoncil
+FROM krajina k
+JOIN bezec b ON b.id_krajina = k.id_krajina
+JOIN bezec_pretek bp ON bp.id_bezec = b.id_bezec
+WHERE b.stredne_meno IS NOT NULL
+    AND bp.cas_v_milisekundach IS NOT NULL
+    AND k.kod LIKE '%R%'
+GROUP BY GROUPING SETS ((k.kod, b.stredne_meno),(k.kod),())
+ORDER BY
+    krajina ASC NULLS LAST,
+    bezec ASC NULLS LAST,
+    dokoncil ASC;
+
+--novak/kovac/hruska/15
+SELECT k.nazov AS krajina, k.kod AS skratka,
+STRING_AGG(b.priezvisko, ',' ORDER BY b.priezvisko ASC) AS bezci,
+COUNT(b.id_bezec) AS pocet
+FROM krajina k
+JOIN bezec b ON k.id_krajina = b.id_krajina
+GROUP BY k.nazov, k.kod
+ORDER BY k.nazov ASC, k.kod ASC, pocet DESC;
+
+--maji2025/33
+SELECT b.meno AS meno, b.priezvisko AS priezvisko, p.nazov AS pretek
+FROM bezec b
+JOIN bezec_pretek bp ON b.id_bezec = bp.id_bezec
+JOIN pretek p ON p.id_pretek = bp.id_pretek
+WHERE EXTRACT(YEAR FROM p.datum) = 2025 AND EXTRACT(MONTH FROM
+p.datum) = 5
+ORDER BY meno ASC, priezvisko ASC, pretek ASC;
+
+--polmaraton v bruseli/5
+WITH vysledky AS (
+ SELECT
+ b.meno,
+ b.priezvisko,
+ FLOOR(bp.cas_v_milisekundach / 1000) AS sekundy,
+ bp.cas_v_milisekundach,
+ ROW_NUMBER() OVER (
+ ORDER BY
+ CASE WHEN bp.cas_v_milisekundach IS NULL THEN 1 ELSE
+0 END,
+ bp.cas_v_milisekundach ASC,
+ b.priezvisko ASC,
+ b.meno ASC
+ ) AS poradie
+ FROM bezec b
+ JOIN bezec_pretek bp ON b.id_bezec = bp.id_bezec
+ JOIN pretek p ON p.id_pretek = bp.id_pretek
+ WHERE p.nazov = 'Polmaratón v Bruseli'
+),
+pocet AS (
+ SELECT COUNT(*) AS celkovo FROM vysledky
+),
+prva_polovica AS (
+ SELECT v.*
+ FROM vysledky v, pocet p
+ WHERE v.poradie <= FLOOR(p.celkovo / 2.0)
+ AND v.cas_v_milisekundach IS NOT NULL
+)
+SELECT meno, priezvisko, sekundy
+FROM prva_polovica
+ORDER BY sekundy ASC, priezvisko ASC, meno ASC
+
+--slovensko a kanada/13
+SELECT
+    k.nazov AS stat,
+    b.meno AS meno,
+    b.priezvisko AS priezvisko
+FROM
+    bezec b
+JOIN
+    krajina k ON b.id_krajina = k.id_krajina
+WHERE
+    k.nazov NOT IN ('Slovensko', 'Kanada')
+    AND b.datum_narodenia = (
+        SELECT MIN(b2.datum_narodenia)
+        FROM bezec b2
+        WHERE b2.id_krajina = b.id_krajina
+    )
+ORDER BY
+    stat ASC,
+    meno ASC,
+    priezvisko DESC;
+
+--lubovolnom preteku/14
+SELECT
+    k.nazov AS stat,
+    CEIL(AVG(bp.cas_v_milisekundach) / 1000.0) AS priemer,
+    COUNT(DISTINCT b.id_bezec) AS pocet
+FROM
+    bezec b
+JOIN
+    krajina k ON b.id_krajina = k.id_krajina
+JOIN
+    bezec_pretek bp ON b.id_bezec = bp.id_bezec
+GROUP BY
+    k.nazov
+ORDER BY
+    priemer ASC,
+    pocet ASC;
+
+--A/J/7
+SELECT
+    b.meno AS meno,
+    b.priezvisko AS priezvisko,
+    EXTRACT(YEAR FROM b.datum_narodenia) AS rok_narodenia
+FROM
+    bezec b
+WHERE
+    LENGTH(b.priezvisko) < 7
+    AND (b.meno LIKE 'A%' OR b.meno LIKE 'J%')
+ORDER BY
+    meno ASC,
+    priezvisko ASC,
+    rok_narodenia DESC;
+
+--iba cele roky/5
+SELECT
+    b.priezvisko AS priezvisko,
+    b.meno AS meno,
+    EXTRACT(YEAR FROM AGE(CURRENT_DATE, b.datum_narodenia)) AS vek
+FROM
+    bezec b
+LEFT JOIN
+    bezec_pretek bp ON b.id_bezec = bp.id_bezec
+WHERE
+    bp.id_bezec IS NULL
+ORDER BY
+    vek ASC,
+    priezvisko ASC,
+    meno ASC;
+
+--pismeno "A"/19
+SELECT
+    k.kod AS krajina,
+    b.priezvisko AS bezec,
+    COUNT(*) AS nedobehol
+FROM
+    bezec b
+JOIN
+    krajina k ON b.id_krajina = k.id_krajina
+JOIN
+    bezec_pretek bp ON b.id_bezec = bp.id_bezec
+WHERE
+    k.kod LIKE '%A%'
+    AND bp.cas_v_milisekundach IS NULL
+GROUP BY
+    ROLLUP(k.kod, b.priezvisko)
+ORDER BY
+    krajina ASC,
+    bezec ASC,
+    nedobehol DESC;
+
+--maraton v berline.1990/4
+SELECT
+    b.priezvisko AS priezvisko,
+    AVG(bp.cas_v_milisekundach) / 1000.0 AS priemer,
+    COUNT(*) AS pocet
+FROM
+    bezec b
+JOIN
+    krajina k ON b.id_krajina = k.id_krajina
+JOIN
+    bezec_pretek bp ON b.id_bezec = bp.id_bezec
+JOIN
+    pretek p ON bp.id_pretek = p.id_pretek
+WHERE
+    k.kontinent = 'Afrika'
+    AND b.datum_narodenia >= '1990-01-01'
+    AND p.nazov <> 'Maratón v Berlíne'
+GROUP BY
+    b.meno, b.priezvisko, b.stredne_meno, b.datum_narodenia
+ORDER BY
+    priezvisko ASC,
+    priemer ASC,
+    pocet ASC
+LIMIT 4;
+
+--s rokom konania/10
+SELECT
+    p.nazov AS pretek,
+    EXTRACT(YEAR FROM p.datum) AS rok,
+    COALESCE(STRING_AGG(b.priezvisko, ',' ORDER BY b.priezvisko), '') AS bezci,
+    COUNT(b.id_bezec) AS pocet
+FROM
+    pretek p
+LEFT JOIN
+    bezec_pretek bp ON p.id_pretek = bp.id_pretek
+LEFT JOIN
+    bezec b ON bp.id_bezec = b.id_bezec
+GROUP BY
+    p.id_pretek, p.nazov, p.datum
+ORDER BY
+    rok DESC,
+    pocet DESC,
+    pretek ASC,
+    bezci ASC
+LIMIT 10;
+
+--1800 a 1900/6
+SELECT
+    p.nazov AS pretek,
+    COUNT(*) AS pocet
+FROM
+    pretek p
+JOIN
+    bezec_pretek bp ON p.id_pretek = bp.id_pretek
+JOIN
+    bezec b ON bp.id_bezec = b.id_bezec
+JOIN
+    krajina k ON b.id_krajina = k.id_krajina
+WHERE
+    LOWER(p.nazov) LIKE '%maraton%'
+    AND (k.rok_vzniku < 1800 OR k.rok_vzniku > 1900)
+GROUP BY
+    p.nazov
+ORDER BY
+    pocet DESC,
+    pretek ASC
+LIMIT 6;
+
