@@ -360,7 +360,7 @@ JOIN
 JOIN
     krajina k ON b.id_krajina = k.id_krajina
 WHERE
-    LOWER(p.nazov) LIKE '%maraton%'
+    LOWER(p.nazov) LIKE '%maratón%'  -- s diakritikou
     AND (k.rok_vzniku < 1800 OR k.rok_vzniku > 1900)
 GROUP BY
     p.nazov
@@ -368,4 +368,3 @@ ORDER BY
     pocet DESC,
     pretek ASC
 LIMIT 6;
-
